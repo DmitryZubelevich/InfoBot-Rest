@@ -19,7 +19,7 @@ namespace InfoBot
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .Build();
-
+            
             host.Run();
         }
     }
