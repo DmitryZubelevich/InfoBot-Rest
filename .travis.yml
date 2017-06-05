@@ -13,9 +13,8 @@ script:
   - ./build.sh
 
 after_success:
- - 
-    echo "Test";
-    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" registry.heroku.com;
-    docker build -t "$APP_NAME" ./bin/Release/netcoreapp1.1/publish;
-    docker tag "$APP_NAME" registry.heroku.com/{"$APP_NAME"}/web
-    docker push registry.heroku.com/{"$APP_NAME"}/web
+ - echo "Test";
+ - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" registry.heroku.com;
+ - docker build -t $APP_NAME ./bin/Release/netcoreapp1.1/publish;
+ - docker tag "$APP_NAME" registry.heroku.com/$APP_NAME/web
+ - docker push registry.heroku.com/$APP_NAME/web
