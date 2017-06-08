@@ -1,11 +1,13 @@
 ﻿using DarkSkyDotNetCore;
 using DarkSkyDotNetCore.Model;
+using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace InfoBot.MessageGenerators.WeatherMessageGenerator
 {
-    public class WeatherMessageGenerator : IMessageGenerator
+    public class WeatherMessageGenerator : IWeatherMessageGenerator
     {
         private const float _latitude = 53.9f;
         private const float _longtitude = 27.56667f;
@@ -62,10 +64,13 @@ namespace InfoBot.MessageGenerators.WeatherMessageGenerator
         {
             var result = new StringBuilder();
 
+            var todayDate = DateTime.Now;
             result.Append("============== Прогноз на сегодня =============\r\n");
-            foreach (var day in response.Daily.Data)
+            var twelveHoursForecast = response.Hourly.Data.Where(s => s.Time.ToDateTime().ToLocalTime() > todayDate).OrderBy(s => s.Time).Take(12).ToList();
+            foreach (var hour in twelveHoursForecast)
             {
-                result.Append($"{day.Time.ToDateTime().ToLocalTime().ToString("dddd")} - {day.Summary} {day.TemperatureMin.ToWholeNumber()}-{day.TemperatureMax.ToWholeNumber()}\r\n");
+                //result.Append($"{day.Time.ToDateTime().ToLocalTime().ToString("dddd")} - {day.Summary} {day.TemperatureMin.ToWholeNumber()}-{day.TemperatureMax.ToWholeNumber()}\r\n");
+                result.Append($"{hour.Time.ToDateTime().ToLocalTime().ToString("dd-MMM HH:mm")} - {hour.Summary} {hour.ApparentTemperature.ToWholeNumber()}\r\n");
             }
 
             return result.ToString();
