@@ -32,7 +32,9 @@ namespace InfoBot
             // Add framework services.
             services.AddMvc();
             services.AddSingleton<IWeatherMessageGenerator>(new WeatherMessageGenerator(Configuration["ApiKeys:DarkSky"]));
-            services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(Configuration["ApiKeys:Telegram"]));
+            var botClient = new TelegramBotClient(Configuration["ApiKeys:Telegram"]);
+            botClient.SetWebhookAsync($"{Configuration["AppSettings:AppUrl"]}/api/webhook").Wait();
+            services.AddSingleton<ITelegramBotClient>(botClient);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

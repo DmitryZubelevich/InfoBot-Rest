@@ -19,7 +19,6 @@ namespace InfoBot.Controllers
         public WebHookController(ITelegramBotClient botClient)
         {
             _botClient = botClient;
-            _botClient.SetWebhookAsync("http://helloworld-netcore.herokuapp.com/api/webhook").Wait();
         }
 
         // POST api/webhook
