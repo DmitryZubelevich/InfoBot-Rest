@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot;
+using Newtonsoft.Json;
 
 namespace InfoBot.Controllers
 {
@@ -25,6 +26,9 @@ namespace InfoBot.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Update update)
         {
+            var messageString = JsonConvert.SerializeObject(update);
+            Console.WriteLine(messageString);
+
             var message = update?.Message;
 
             if(message == null)
@@ -46,7 +50,7 @@ namespace InfoBot.Controllers
         {
             var result = await _botClient.TestApiAsync();
             var me = await _botClient.GetMeAsync();
-            return $"Me - {me}. Test result: {result}";
+            return $"Me - {me.Username}. Test result: {result}";
         }
     }
 }
