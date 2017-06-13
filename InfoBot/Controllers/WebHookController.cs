@@ -24,23 +24,24 @@ namespace InfoBot.Controllers
 
         // POST api/webhook
         [HttpPost]
-        public async Task<IActionResult> Post(Update update)
+        public async Task<IActionResult> Post(string update)
         {
-            var messageString = JsonConvert.SerializeObject(update);
-            Console.WriteLine(messageString);
+            Console.WriteLine(update);
+            //var messageString = JsonConvert.SerializeObject(update);
+            //Console.WriteLine(messageString);
 
-            var message = update?.Message;
+            //var message = update?.Message;
 
-            if(message == null)
-            {
-                return Ok();
-            }
+            //if(message == null)
+            //{
+            //    return Ok();
+            //}
 
-            if (message.Type == MessageType.TextMessage)
-            {
-                // Echo each Message
-                await _botClient.SendTextMessageAsync(message.Chat.Id, message.Text);
-            }
+            //if (message.Type == MessageType.TextMessage)
+            //{
+            //    // Echo each Message
+            //    await _botClient.SendTextMessageAsync(message.Chat.Id, message.Text);
+            //}
 
             return Ok();
         }
