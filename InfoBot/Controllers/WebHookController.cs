@@ -25,7 +25,12 @@ namespace InfoBot.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Update update)
         {
-            var message = update.Message;
+            var message = update?.Message;
+
+            if(message == null)
+            {
+                return Ok();
+            }
 
             if (message.Type == MessageType.TextMessage)
             {
