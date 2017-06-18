@@ -8,6 +8,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace InfoBot.Controllers
 {
@@ -16,6 +17,7 @@ namespace InfoBot.Controllers
     public class WebHookController : Controller
     {
         private readonly ITelegramBotClient _botClient;
+        private static ILogger Logger = Log.ForContext<WebHookController>();
 
         public WebHookController(ITelegramBotClient botClient)
         {
@@ -26,33 +28,37 @@ namespace InfoBot.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]Update update)
         {
-            Console.WriteLine(update.Id);
-
-            var messageString = JsonConvert.SerializeObject(update);
-            Console.WriteLine(messageString);
-
             var message = update?.Message;
-
             if (message == null)
             {
+                var messageString = JsonConvert.SerializeObject(update);
+                Log.Warning($"POST api/webhook: update event with empty message: '{messageString}'");
                 return Ok();
             }
 
             if (message.Type == MessageType.TextMessage)
             {
-                // Echo each Message
-                await _botClient.SendTextMessageAsync(message.Chat.Id, message.Text);
+                try
+                {
+                    // Echo each Message
+                    await _botClient.SendTextMessageAsync(message.Chat.Id, message.Text);
+                }catch(Exception e)
+                {
+                    Log.Warning($"POST api/webhook: exception on sending text message: '{e.Message}'");
+                }
             }
 
             return Ok();
         }
 
+        // GET api/webhook
         [HttpGet]
         public async Task<string> GetAsync()
         {
             var result = await _botClient.TestApiAsync();
             var me = await _botClient.GetMeAsync();
-            return $"Me - {me.Username}. Test result: {result}";
+            var response = $"Me - {me.Username}. Test result: {result}";
+            return response;
         }
     }
 }
