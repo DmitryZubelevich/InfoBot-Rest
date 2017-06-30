@@ -1,7 +1,11 @@
 ﻿using DarkSkyDotNetCore;
 using DarkSkyDotNetCore.Model;
+using Newtonsoft.Json;
+using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,55 +13,117 @@ namespace InfoBot.MessageGenerators.WeatherMessageGenerator
 {
     public class WeatherMessageGenerator : IWeatherMessageGenerator
     {
-        private const float _latitude = 53.9f;
-        private const float _longtitude = 27.56667f;
         private readonly string _apiKey;
+        private const string NominatimUrlTemplate = "http://nominatim.openstreetmap.org/search?city={0}&format=json";
+        private static ILogger Logger = Log.ForContext<WeatherMessageGenerator>();
 
         public WeatherMessageGenerator(string apiKey)
         {
             _apiKey = apiKey;
         }
 
-        public async Task<string> GetMessageAsync()
+        public async Task<string> GetMessageAsync(string city)
         {
-            var forecast = await GetCurrentForecast(_apiKey, DarkSkyDotNetCore.Unit.si, "ru");
+            var cityInfo = await SearchPlaceAsync(city);
+            if(cityInfo == null)
+            {
+                return $"Извините, я не могу найти город {city}";
+            }
+
+            var forecast = await GetCurrentForecast(_apiKey, cityInfo, Unit.si, "ru");
 
             var resultedForecast = new StringBuilder();
-
-            resultedForecast.Append(GetCurrentForecastString(forecast));
-            resultedForecast.Append(GetDailyForecastString(forecast));
+            var cityName = cityInfo.display_name.Split(',').First().Trim();
+            resultedForecast.Append(GetCurrentForecastString(forecast, cityName));
+            //resultedForecast.Append(GetDailyForecastString(forecast));
 
             return resultedForecast.ToString();
         }
 
-        private async Task<ForecastResponse> GetCurrentForecast(string apiKey, Unit unit, string lang)
+        private async Task<ForecastResponse> GetCurrentForecast(string apiKey, PlaceInfo cityInfo, Unit unit, string lang)
         {
-            var request = new ForecastRequest(apiKey, _latitude, _longtitude, unit, lang);
+            var latitude = float.Parse(cityInfo.lat);
+            var longtitude = float.Parse(cityInfo.lon);
+            var request = new ForecastRequest(apiKey, latitude, longtitude, unit, lang);
 
             return await request.GetAsync();
         }
 
-        private string GetCurrentForecastString(ForecastResponse response)
+        private async Task<PlaceInfo> SearchPlaceAsync(string city)
         {
-            var result = "====================== Прогноз на сегодня ========================\r\n" +
-                $"Краткая сводка: {response.Currently.Summary}\r\n" +
-                $"Температура: {response.Currently.Temperature.ToWholeNumber()} \r\n" +
-                $"Ощущается: {response.Currently.ApparentTemperature.ToWholeNumber()} \r\n" +
-                $"Влажность: {response.Currently.Humidity.ToPercentString()} \r\n" +
-                $"Давление: {response.Currently.Pressure}\r\n";
+            var url = string.Format(NominatimUrlTemplate, city);
+            var request = WebRequest.Create(url);
+            request.Method = "GET";
 
-            if (response.Alerts != null && response.Alerts.Count > 0)
+            try
             {
-                result += "======================== Предупреждения ========================\r\n";
-                foreach (var alert in response.Alerts)
-                {
-                    result += $"{alert.Title}\r\n";
-                }
+                var content = await Helpers.GetResponseAsync(request);
+                return JsonConvert.DeserializeObject<List<PlaceInfo>>(content).FirstOrDefault();
+            }catch(Exception e)
+            {
+                Logger.Error($"SearchPlaceAsync: Exception: {e.Message}. Stacktrace: {e.StackTrace}");
+                return null;
+            }
+        }
+
+        private string GetCurrentForecastString(ForecastResponse response, string cityName)
+        {
+            var resultBuilder = new StringBuilder();
+            resultBuilder.Append($"Погода в городе {cityName} на сегодня: \r\n\r\n");
+            resultBuilder.Append($"Краткая сводка: {response.Currently.Summary}\r\n");
+            resultBuilder.Append($"Температура: {response.Currently.Temperature.ToWholeNumber()}°C \r\n");
+            resultBuilder.Append($"Ощущается как: {response.Currently.ApparentTemperature.ToWholeNumber()}°C \r\n");
+            resultBuilder.Append($"Влажность: {response.Currently.Humidity.ToPercentString()} \r\n");
+            resultBuilder.Append($"Облачность: {response.Currently.CloudCover.ToPercentString()} \r\n");
+            resultBuilder.Append($"Ветер: {response.Currently.WindSpeed.ToWholeNumber()}м/с {FindWindDirection(response.Currently.WindBearing)} \r\n");
+            resultBuilder.Append($"Давление: {response.Currently.Pressure.ToWholeNumber()} мБар.");
+
+            return resultBuilder.ToString();
+        }
+
+        private string FindWindDirection(float windBearing)
+        {
+            if(windBearing >= 0 && windBearing < 22.5)
+            {
+                return "(Ю)";
             }
 
-            result += "\r\n";
+            if(windBearing < 67.5)
+            {
+                return "(ЮЗ)";
+            }
 
-            return result;
+            if(windBearing < 112.5)
+            {
+                return "(З)";
+            }
+
+            if(windBearing < 157.5)
+            {
+                return "(СЗ)";
+            }
+
+            if(windBearing < 202.5)
+            {
+                return "(С)";
+            }
+
+            if(windBearing < 247.5)
+            {
+                return "(СВ)";
+            }
+
+            if(windBearing < 292.5)
+            {
+                return "(В)";
+            }
+
+            if(windBearing < 337.5)
+            {
+                return "(ЮВ)";
+            }
+
+            return "(Ю)";
         }
 
         private string GetDailyForecastString(ForecastResponse response)

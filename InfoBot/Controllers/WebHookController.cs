@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot;
 using Newtonsoft.Json;
 using Serilog;
+using System.Linq;
+using InfoBot.MessageGenerators.WeatherMessageGenerator;
 
 namespace InfoBot.Controllers
 {
@@ -17,11 +16,13 @@ namespace InfoBot.Controllers
     public class WebHookController : Controller
     {
         private readonly ITelegramBotClient _botClient;
+        private IWeatherMessageGenerator _weatherMessageGenerator;
         private static ILogger Logger = Log.ForContext<WebHookController>();
 
-        public WebHookController(ITelegramBotClient botClient)
+        public WebHookController(ITelegramBotClient botClient, IWeatherMessageGenerator weatherMessageGenerator)
         {
             _botClient = botClient;
+            _weatherMessageGenerator = weatherMessageGenerator;
         }
 
         // POST api/webhook
@@ -40,8 +41,24 @@ namespace InfoBot.Controllers
             {
                 try
                 {
-                    // Echo each Message
-                    await _botClient.SendTextMessageAsync(message.Chat.Id, message.Text);
+                    var parts = message.Text.Split(' ');
+                    var commandPart = parts.FirstOrDefault()?.Trim();
+
+                    var responseMessage = message.Text;
+                    if(commandPart.Equals("погода", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var city = parts.LastOrDefault()?.Trim();
+                        if (string.IsNullOrEmpty(city))
+                        {
+                            responseMessage = "Укажите пожалуйста город!";
+                        }
+                        else
+                        {
+                            responseMessage = await _weatherMessageGenerator.GetMessageAsync(city);
+                        }
+                    }
+
+                    await _botClient.SendTextMessageAsync(message.Chat.Id, responseMessage);
                 }catch(Exception e)
                 {
                     Log.Warning($"POST api/webhook: exception on sending text message: '{e.Message}'");

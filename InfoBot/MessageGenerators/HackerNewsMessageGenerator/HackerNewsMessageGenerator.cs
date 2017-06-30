@@ -13,7 +13,7 @@ namespace InfoBot.MessageGenerators.HackerNewsMessageGenerator
         private const string TopStoriesUrl = "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty";
         private const string GetItemUrl = "https://hacker-news.firebaseio.com/v0/item/{0}.json?print=pretty";
 
-        public async Task<string> GetMessageAsync()
+        public async Task<string> GetMessageAsync(string command)
         {
             var ids = await GetTopPostsIdsAsync();
 
@@ -42,7 +42,7 @@ namespace InfoBot.MessageGenerators.HackerNewsMessageGenerator
         {
             var request = WebRequest.Create(TopStoriesUrl);
             request.Method = "GET";
-            var content = await GetResponse(request);
+            var content = await Helpers.GetResponseAsync(request);
 
             return JsonConvert.DeserializeObject<List<int>>(content);
         }
@@ -53,18 +53,9 @@ namespace InfoBot.MessageGenerators.HackerNewsMessageGenerator
             var request = WebRequest.Create(url);
             request.Method = "GET";
 
-            var response = await GetResponse(request);
+            var response = await Helpers.GetResponseAsync(request);
 
             return JsonConvert.DeserializeObject<Item>(response);
-        }
-
-        private static async Task<string> GetResponse(WebRequest request)
-        {
-            var wr = await request.GetResponseAsync();
-            var receiveStream = wr.GetResponseStream();
-            var reader = new StreamReader(receiveStream, Encoding.UTF8);
-            var content = reader.ReadToEnd();
-            return content;
         }
     }
 }

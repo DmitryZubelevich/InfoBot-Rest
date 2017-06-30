@@ -4,6 +4,6 @@ namespace InfoBot.MessageGenerators
 {
     public interface IMessageGenerator
     {
-        Task<string> GetMessageAsync();
+        Task<string> GetMessageAsync(string command);
     }
 }

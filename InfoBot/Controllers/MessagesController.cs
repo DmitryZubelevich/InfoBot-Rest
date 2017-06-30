@@ -19,11 +19,11 @@ namespace InfoBot.Controllers
             _weatherMessageGenerator = weatherMessageGenerator;
         }
 
-        // Get api/Weather
-        [HttpGet("/api/messages/weather")]
-        public async Task<string> GetWeatherAsync()
+        // Get api/Weather/{city}
+        [HttpGet("/api/messages/weather/{city}")]
+        public async Task<string> GetWeatherAsync(string city)
         {
-            var forecastMessage = await _weatherMessageGenerator.GetMessageAsync();
+            var forecastMessage = await _weatherMessageGenerator.GetMessageAsync(city);
             return forecastMessage;
         }
     }
