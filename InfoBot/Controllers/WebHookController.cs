@@ -45,7 +45,7 @@ namespace InfoBot.Controllers
                     var commandPart = parts.FirstOrDefault()?.Trim();
 
                     var responseMessage = message.Text;
-                    if(commandPart.Equals("погода", StringComparison.OrdinalIgnoreCase))
+                    if(commandPart.Equals("weather", StringComparison.OrdinalIgnoreCase))
                     {
                         var city = parts.LastOrDefault()?.Trim();
                         if (string.IsNullOrEmpty(city))
