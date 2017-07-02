@@ -85,45 +85,45 @@ namespace InfoBot.MessageGenerators.WeatherMessageGenerator
         {
             if(windBearing >= 0 && windBearing < 22.5)
             {
-                return "(Ю)";
+                return "\u2B07 (Ю)";
             }
 
             if(windBearing < 67.5)
             {
-                return "(ЮЗ)";
+                return "\u2199 (ЮЗ)";
             }
 
             if(windBearing < 112.5)
             {
-                return "(З)";
+                return "\u2B05 (З)";
             }
 
             if(windBearing < 157.5)
             {
-                return "(СЗ)";
+                return "\u2196 (СЗ)";
             }
 
             if(windBearing < 202.5)
             {
-                return "(С)";
+                return "\u2B06 (С)";
             }
 
             if(windBearing < 247.5)
             {
-                return "(СВ)";
+                return "\u2197 (СВ)";
             }
 
             if(windBearing < 292.5)
             {
-                return "(В)";
+                return "\u27A1 (В)";
             }
 
             if(windBearing < 337.5)
             {
-                return "(ЮВ)";
+                return "\u2198 (ЮВ)";
             }
 
-            return "(Ю)";
+            return "\u2B07 (Ю)";
         }
 
         private string GetDailyForecastString(ForecastResponse response)
