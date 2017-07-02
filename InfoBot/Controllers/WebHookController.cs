@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
@@ -45,12 +45,12 @@ namespace InfoBot.Controllers
                     var commandPart = parts.FirstOrDefault()?.Trim();
 
                     var responseMessage = message.Text;
-                    if(commandPart.Equals("погода", StringComparison.OrdinalIgnoreCase))
+                    if(commandPart.Equals("РїРѕРіРѕРґР°", StringComparison.OrdinalIgnoreCase))
                     {
                         var city = parts.Count() > 1 ? parts[1] : null;
                         if (string.IsNullOrEmpty(city))
                         {
-                            responseMessage = "Укажите пожалуйста город!";
+                            responseMessage = "РЈРєР°Р¶РёС‚Рµ РїРѕР¶Р°Р»СѓР№СЃС‚Р° РіРѕСЂРѕРґ!";
                         }
                         else
                         {
